@@ -15,7 +15,7 @@ app.get("/", (req, res) => {
   res.send("Hello");
 });
 
-app.get("/urls.json", (req, res) => { 
+app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);//here getting the urlDatabase object in the form of json string
 });
 
@@ -33,23 +33,31 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
+  if (!urlDatabase[req.params.id]) {
+    return res.status(404).send("URL does not exist");
+  }
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  generateRandomString();
-  res.send('OK'); // Respond with 'Ok' (we will replace this)
+  let id = generateRandomString();
+  urlDatabase[id] = req.body.longURL;
+  console.log(urlDatabase);
+  res.redirect(`/urls/${id}`);
 });
 
+app.get("/u/:id", (req, res) => {
+  const longURL = urlDatabase[req.params.id];
+  res.redirect(longURL);
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-function generateRandomString() {
+const generateRandomString = function() {
   let string = (Math.random() + 1).toString(36).substring(6);
-  console.log(string);
+  return string;
 };
 
