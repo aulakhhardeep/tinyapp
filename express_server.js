@@ -40,6 +40,7 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+//post request to generate short URL
 app.post("/urls", (req, res) => {
   let id = generateRandomString();
   urlDatabase[id] = req.body.longURL;
@@ -51,10 +52,19 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
-app.post("/urls/:id/delete", (req, res) => {
+//post request for delete
+app.post("/urls/:id/delete", (req, res) => { 
   let id = req.params.id;
   delete urlDatabase[id];
   res.redirect('/urls');
+});
+
+//post request for edit
+app.post("/urls/:id/edit", (req, res) => {
+  let id = req.params.id;
+  const longURL = req.body.longURL;
+  urlDatabase[id] = longURL; //storing the edited longURL in the database
+  res.redirect("/urls");
 });
 
 app.listen(PORT, () => {
