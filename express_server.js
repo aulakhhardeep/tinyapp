@@ -43,13 +43,18 @@ app.get("/urls/:id", (req, res) => {
 app.post("/urls", (req, res) => {
   let id = generateRandomString();
   urlDatabase[id] = req.body.longURL;
-  console.log(urlDatabase);
   res.redirect(`/urls/${id}`);
 });
 
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
   res.redirect(longURL);
+});
+
+app.post("/urls/:id/delete", (req, res) => {
+  let id = req.params.id;
+  delete urlDatabase[id];
+  res.redirect('/urls');
 });
 
 app.listen(PORT, () => {
