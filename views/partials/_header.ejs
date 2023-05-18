@@ -19,11 +19,17 @@
       </div>
     </div>
     <div class="float-lg-right">
-      <form method="POST" action="/login">
-        <input type="text" placeholder="Username" name="username">
-        <button type="submit" class="btn btn-outline-dark">Login</button>
-      </form>
-      <lebel>Logged in as:</lebel><h4><%= username %></h4>
+      <% if(username){ %>
+        <label>Logged in as:</label><h4><%= username %></h4>
+        <form method="POST" action="/logout">
+          <button type="submit" class="btn btn-outline-dark">Logout</button>
+        </form>
+        <% } else { %>
+          <form method="POST" action="/login">
+            <input type="text" placeholder="Username" name="username">
+            <button type="submit" class="btn btn-outline-dark">Login</button>
+          </form>
+          <% } %>
     </div>
   </nav>
 </header>
