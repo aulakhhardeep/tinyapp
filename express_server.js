@@ -53,7 +53,7 @@ app.get("/u/:id", (req, res) => {
 });
 
 //post request for delete
-app.post("/urls/:id/delete", (req, res) => { 
+app.post("/urls/:id/delete", (req, res) => {
   let id = req.params.id;
   delete urlDatabase[id];
   res.redirect('/urls');
@@ -64,6 +64,13 @@ app.post("/urls/:id/edit", (req, res) => {
   let id = req.params.id;
   const longURL = req.body.longURL;
   urlDatabase[id] = longURL; //storing the edited longURL in the database
+  res.redirect("/urls");
+});
+
+//a post request to handle login route
+app.post("/login", (req,res) => {
+  let username = req.body.username;
+  res.cookie('username',username);
   res.redirect("/urls");
 });
 
