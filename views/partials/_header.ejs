@@ -19,16 +19,16 @@
       </div>
     </div>
     <div class="float-lg-right">
-      <% if(username){ %>
-        <label>Logged in as:</label><h4><%= username %></h4>
+      <% if(user){ %>
+        <label>Logged in as:</label><h4><%= user.email %></h4>
         <form method="POST" action="/logout">
-          <button type="submit" class="btn btn-outline-dark">Logout</button>
+          <button type="submit" class="btn btn-danger">Logout</button>
         </form>
         <% } else { %>
-          <form method="POST" action="/login">
-            <input type="text" placeholder="Username" name="username">
-            <button type="submit" class="btn btn-outline-dark">Login</button>
-          </form>
+         <div> 
+          <a class="btn btn-default" href="/login" >Login</a>
+          <a class="btn btn-default" href="/register">Register</a>
+         </div>
           <% } %>
     </div>
   </nav>
