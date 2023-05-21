@@ -1,5 +1,9 @@
 const express = require('express');
 let cookieSession = require('cookie-session');
+const helpers = require('./helpers');
+const getUserByEmail = helpers.getUserByEmail;
+const generateRandomString = helpers.generateRandomString;
+const getUserByID = helpers.getUserByID;
 const bcrypt = require("bcryptjs");
 const app = express();
 
@@ -89,10 +93,11 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id].longURL;
-  if (!longURL) { //handle long URL ids that do not exist
+  if (!urlDatabase[req.params.id]) { // Check if id exists in urlDatabase
     return res.status(404).send("URL does not exist");
   }
+  
+  const longURL = urlDatabase[req.params.id].longURL;
   res.redirect(longURL);
 });
 
@@ -190,28 +195,7 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-const generateRandomString = function() {
-  let string = (Math.random() + 1).toString(36).substring(6);
-  return string;
-};
 
-const getUserByID = function(userId, users) {
-  for (let id in users) {
-    if (users[id].id === userId) {
-      return users[id];
-    }
-  }
-  return null;
-};
-
-const getUserByEmail = function(email, users) {
-  for (let userId in users) {
-    if (users[userId].email === email) {
-      return users[userId];
-    }
-  }
-  return null;
-};
 // a function which returns URLs where the userID is equal to the id of the currently logged-in user.
 const urlsForUser = function(cookieId) {
   const userUrls = {};
