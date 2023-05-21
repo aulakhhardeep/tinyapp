@@ -12,7 +12,7 @@ TinyApp is a full stack web application built with Node and Express that allows 
 #Login Page
 !["Screenshot of login page"](docs/login-page.png)
 #Create new URL Page
-!["Screenshot of create new tinyurl page"](docs/create_tinyurl-page.png)
+!["Screenshot of create new tinyurl page"](docs/create-tinyurl-page.png)
 
 
 ## Dependencies
