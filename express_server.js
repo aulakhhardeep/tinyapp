@@ -9,25 +9,25 @@ app.set("view engine", "ejs");
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
-    userID: "aJ48lW",
+    userId: "aJ48lW",
   },
   i3BoGr: {
     longURL: "https://www.google.ca",
-    userID: "aJ48lW",
+    userId: "aJ48lW",
   },
 };
 
 const users = {
   userRandomID: {
-      id: "userRandomID",
-      email: "user@example.com",
-      password: "purple-monkey-dinosaur",
-    },
-    user2RandomID: {
-      id: "user2RandomID",
-      email: "user2@example.com",
-      password: "dishwasher-funk",
-    },
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
 
 };
 
@@ -40,14 +40,14 @@ app.get("/urls.json", (req, res) => {
 app.get("/urls", (req, res) => {
   const userId = req.cookies["user_id"];
   const user = getUserByID(userId, users);
-  const templateVars = { urls: urlDatabase, user};
+  const templateVars = { urls: urlsForUser(userId), user};
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
   const userId = req.cookies["user_id"];
   const user = getUserByID(userId, users);
-  if(!user) { //if user is not logged in redirecting to login page
+  if (!user) { //if user is not logged in redirecting to login page
     return res.redirect("/login");
   }
   const templateVars = { user }; //if logged in then redirecting to urls_new page
@@ -57,6 +57,9 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const userId = req.cookies["user_id"];
   const user = getUserByID(userId, users);
+  if (!user) {
+    return res.status(403).send("<p>You need to be logged in or register first.</p>");
+  }
   if (!urlDatabase[req.params.id]) { //Handle Short URL Ids that do not exist
     return res.status(404).send("URL does not exist");
   }
@@ -71,8 +74,7 @@ app.post("/urls", (req, res) => {
     return res.status(403).send("<p>You need to be logged in to shorten URLs.</p>");//IT is only working with curl
   }
   let id = generateRandomString();
-  urlDatabase[id] = { longURL: req.body.longURL};
-  console.log(urlDatabase[id]);
+  urlDatabase[id] = { longURL: req.body.longURL, userId: userId };
   res.redirect(`/urls/${id}`);
 });
 
@@ -125,7 +127,7 @@ app.post("/register", (req,res) => {
     return res.status(400).send("Email and password fields cannot be empty.");
   }
 
-  if(getUserByEmail(req.body.email, users)) {//check if user already exists or not
+  if (getUserByEmail(req.body.email, users)) {//check if user already exists or not
     return res.status(400).send("User already exists.");
   }
 
@@ -145,14 +147,14 @@ app.post("/login", (req,res) => {
     return res.status(400).send("Email and password fields cannot be empty.");
   }
   const user = getUserByEmail(req.body.email, users);
-  if(!user) {//check if user already exists or not
+  if (!user) {//check if user already exists or not
     return res.status(403).send("User not found, You need to register.");
-  } else if(user.password !== req.body.password) {
+  } else if (user.password !== req.body.password) {
     return res.status(403).send("Incorrect Password.");
   }
   res.cookie('user_id', user.id);
   res.redirect("/urls");
-})
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
@@ -163,9 +165,9 @@ const generateRandomString = function() {
   return string;
 };
 
-const getUserByID = function(userid, users) {
-  for(let id in users) {
-    if (userid === users[id].id) {
+const getUserByID = function(userId, users) {
+  for (let id in users) {
+    if (users[id].id === userId) {
       return users[id];
     }
   }
@@ -173,10 +175,20 @@ const getUserByID = function(userid, users) {
 };
 
 const getUserByEmail = function(email, users) {
-  for(const userId in users) {
-    if(users[userId].email === email) {
+  for (let userId in users) {
+    if (users[userId].email === email) {
       return users[userId];
     }
   }
   return null;
+};
+// a function which returns URLs where the userID is equal to the id of the currently logged-in user.
+const urlsForUser = function(cookieId) {
+  const userUrls = {};
+  for (let id in urlDatabase) {
+    if (urlDatabase[id].userId === cookieId) {
+      userUrls[id] = urlDatabase[id];
+    }
+  }
+  return userUrls;
 };
