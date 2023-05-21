@@ -63,6 +63,9 @@ app.get("/urls/:id", (req, res) => {
   if (!urlDatabase[req.params.id]) { //Handle Short URL Ids that do not exist
     return res.status(404).send("URL does not exist");
   }
+  if (urlDatabase[req.params.id].userId !== userId) {
+    return res.status(403).send("You do not own this URL.");
+  }
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id].longURL, user };
   res.render("urls_show", templateVars);
 });
@@ -102,6 +105,17 @@ app.get("/login", (req,res) => {
 
 //post request for delete
 app.post("/urls/:id/delete", (req, res) => {
+  const userId = req.cookies["user_id"];
+  const user = getUserByID(userId, users);
+  if (!user) {
+    return res.status(403).send("<p>You need to be logged in or register first.</p>");
+  }
+  if (!urlDatabase[req.params.id]) { //Handle Short URL Ids that do not exist
+    return res.status(404).send("URL does not exist");
+  }
+  if (urlDatabase[req.params.id].userId !== userId) {
+    return res.status(403).send("You do not own this URL.");
+  }
   let id = req.params.id;
   delete urlDatabase[id];
   res.redirect('/urls');
@@ -109,6 +123,17 @@ app.post("/urls/:id/delete", (req, res) => {
 
 //post request for edit
 app.post("/urls/:id/edit", (req, res) => {
+  const userId = req.cookies["user_id"];
+  const user = getUserByID(userId, users);
+  if (!user) {
+    return res.status(403).send("<p>You need to be logged in or register first.</p>");
+  }
+  if (!urlDatabase[req.params.id]) { //Handle Short URL Ids that do not exist
+    return res.status(404).send("URL does not exist");
+  }
+  if (urlDatabase[req.params.id].userId !== userId) {
+    return res.status(403).send("You do not own this URL.");
+  }
   let id = req.params.id;
   const longURL = req.body.longURL;
   urlDatabase[id].longURL = longURL; //storing the edited longURL in the database
