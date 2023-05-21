@@ -7,8 +7,14 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
 
 const users = {
@@ -32,35 +38,49 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const id = req.cookies["user_id"];
-  const templateVars = { urls: urlDatabase, user: getUserByID(id, users)};
+  const userId = req.cookies["user_id"];
+  const user = getUserByID(userId, users);
+  const templateVars = { urls: urlDatabase, user};
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  const id = req.cookies["user_id"];
-  const templateVars = { user: getUserByID(id, users)};
+  const userId = req.cookies["user_id"];
+  const user = getUserByID(userId, users);
+  if(!user) { //if user is not logged in redirecting to login page
+    return res.redirect("/login");
+  }
+  const templateVars = { user }; //if logged in then redirecting to urls_new page
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
-  if (!urlDatabase[req.params.id]) {
+  const userId = req.cookies["user_id"];
+  const user = getUserByID(userId, users);
+  if (!urlDatabase[req.params.id]) { //Handle Short URL Ids that do not exist
     return res.status(404).send("URL does not exist");
   }
-  const id = req.cookies["user_id"];
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id], user: getUserByID(id, users)};
+  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id].longURL, user };
   res.render("urls_show", templateVars);
 });
 
 //post request to generate short URL
 app.post("/urls", (req, res) => {
+  const userId = req.cookies["user_id"];
+  if (!userId) {
+    return res.status(403).send("<p>You need to be logged in to shorten URLs.</p>");//IT is only working with curl
+  }
   let id = generateRandomString();
-  urlDatabase[id] = req.body.longURL;
+  urlDatabase[id] = { longURL: req.body.longURL};
+  console.log(urlDatabase[id]);
   res.redirect(`/urls/${id}`);
 });
 
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id];
+  const longURL = urlDatabase[req.params.id].longURL;
+  if (!longURL) { //handle long URL ids that do not exist
+    return res.status(404).send("URL does not exist");
+  }
   res.redirect(longURL);
 });
 
@@ -89,7 +109,7 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/urls/:id/edit", (req, res) => {
   let id = req.params.id;
   const longURL = req.body.longURL;
-  urlDatabase[id] = longURL; //storing the edited longURL in the database
+  urlDatabase[id].longURL = longURL; //storing the edited longURL in the database
   res.redirect("/urls");
 });
 
@@ -124,18 +144,13 @@ app.post("/login", (req,res) => {
   if (req.body.email === "" || req.body.password === "") { //check if email or password were not provided
     return res.status(400).send("Email and password fields cannot be empty.");
   }
-
-  if(!getUserByEmail(req.body.email, users)) {//check if user already exists or not
+  const user = getUserByEmail(req.body.email, users);
+  if(!user) {//check if user already exists or not
     return res.status(403).send("User not found, You need to register.");
-  } else if(!getUserByPassword(req.body.password, users)) {
+  } else if(user.password !== req.body.password) {
     return res.status(403).send("Incorrect Password.");
   }
-
-  let id = generateRandomString();
-  let email = req.body.email; //storing the value of email field in object key email.
-  let password = req.body.password;
-  users[id] = { id, email, password };
-  res.cookie('user_id', id);
+  res.cookie('user_id', user.id);
   res.redirect("/urls");
 })
 
@@ -160,15 +175,6 @@ const getUserByID = function(userid, users) {
 const getUserByEmail = function(email, users) {
   for(const userId in users) {
     if(users[userId].email === email) {
-      return users[userId];
-    }
-  }
-  return null;
-};
-
-const getUserByPassword = function(password, users) {
-  for(const userId in users) {
-    if(users[userId].password=== password) {
       return users[userId];
     }
   }
