@@ -15,7 +15,7 @@ app.use(cookieSession({
   // Cookie Options
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
-app.set("view engine", "ejs");
+app.set("view engine", "ejs");//set EJS as the view engine
 
 const urlDatabase = {
   b6UTxQ: {
