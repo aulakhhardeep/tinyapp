@@ -160,7 +160,9 @@ app.post("/register", (req,res) => {
   let id = generateRandomString();
   let email = req.body.email; //storing the value of email field in object key email.
   let password = req.body.password;
-  users[id] = { id, email, password };
+  let hashedPassword = bcrypt.hashSync(password, 10);
+  //console.log(hashedPassword);
+  users[id] = { id, email, hashedPassword };
   res.cookie('user_id', id);
   res.redirect("/urls");
   
@@ -175,7 +177,7 @@ app.post("/login", (req,res) => {
   const user = getUserByEmail(req.body.email, users);
   if (!user) {//check if user already exists or not
     return res.status(403).send("User not found, You need to register.");
-  } else if (user.password !== req.body.password) {
+  } else if (!bcrypt.compareSync(req.body.password, user.hashedPassword)) {
     return res.status(403).send("Incorrect Password.");
   }
   res.cookie('user_id', user.id);
